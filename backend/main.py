@@ -134,17 +134,40 @@ async def get_document_preview(doc_id: int):
 async def ask(query: Query):
     cursor.execute("SELECT structure FROM documents WHERE id = ?", (query.document_id,))
     row = cursor.fetchone()
-    if not row: return {"answer": "Document not found."}
+    if not row:
+        return {"answer": "Document not found."}
 
     tree = json.loads(row[0])
     relevant_nodes = collect_relevant_nodes(tree, query.question)
-    if not relevant_nodes: return {"answer": "No relevant context found."}
+    if not relevant_nodes:
+        return {"answer": "No relevant context found."}
 
-    context = "\n\n".join([f"Path: {' > '.join(n['path'])}\nTitle: {n['node']['title']}\nSummary: {n['node'].get('summary', '')}" for n in relevant_nodes])
-    
-    prompt = f"Use ONLY the following context to answer.\n\nContext:\n{context}\n\nQuestion:\n{query.question}"
+    context = "\n\n".join([
+        f"Path: {' > '.join(n['path'])}\nTitle: {n['node']['title']}\nSummary: {n['node'].get('summary', '')}"
+        for n in relevant_nodes
+    ])
+
+    prompt = f"""You are an intelligent assistant. Always respond using clean, structured Markdown like ChatGPT:
+- Use ## and ### for headings
+- Use bullet points for lists
+- Use numbered lists for steps
+- Use **bold** for key terms
+- Use ```language for code blocks
+- Keep answers clear, structured, and professional
+
+Use ONLY the following context to answer the question.
+
+Context:
+{context}
+
+Question:
+{query.question}
+
+Answer in structured Markdown format:"""
+
     answer = await ChatGPT_API_async(model="gpt-oss:120b-cloud", prompt=prompt)
     return {"answer": answer}
+
 
 @app.get("/documents")
 def list_documents():
