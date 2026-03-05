@@ -1,18 +1,39 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
+import os
 import json
 import re
 import sqlite3
 import shutil
-import os
 import uuid
 from typing import List, Dict
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from starlette.middleware.sessions import SessionMiddleware
+
 from pageindex.utils import ChatGPT_API_async
 from pageindex_service import process_document
-from fastapi.middleware.cors import CORSMiddleware
+from database import engine, Base
+from auth_routes import router as auth_router
+from chat_routes import router as chat_router
+
+load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET_KEY", "super-secret-key-change-this")
+)
+
+# create auth database tables
+Base.metadata.create_all(bind=engine)
+
+# include authentication routes
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(chat_router, prefix="/chat", tags=["Chat History"])
 
 # ------------------------------------------------
 # Documents Folder Setup
