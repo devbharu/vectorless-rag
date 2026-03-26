@@ -39,7 +39,9 @@ export default function Login({ onLogin }) {
       const data = await res.json();
 
       if (res.ok) {
-        onLogin();
+        if (onLogin) {
+          await onLogin();
+        }
         navigate("/");
       } else {
         setError(data.detail || "Login failed");

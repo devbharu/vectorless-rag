@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 const API = "http://localhost:8000";
 
-export default function App({ onLogout, username }) {
+export default function App({ onLogout, username, authenticated }) {
   const [documents, setDocuments] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [selectedDocName, setSelectedDocName] = useState(null);
@@ -90,6 +90,7 @@ export default function App({ onLogout, username }) {
   };
 
   const fetchSessions = async () => {
+    if (!authenticated) return;
     try {
       const res = await axios.get(`${API}/chat/sessions`, { withCredentials: true });
       setChatSessions(res.data);
@@ -609,7 +610,7 @@ export default function App({ onLogout, username }) {
       </main>
 
       {/* ── Global Styles ── */}
-      <style jsx global>{`
+      <style>{`
         /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb {

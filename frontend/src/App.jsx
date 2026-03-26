@@ -53,7 +53,7 @@ export default function App() {
           element={
             authenticated
               ? <Navigate to="/" />
-              : <Login onLogin={() => setAuthenticated(true)} />
+              : <Login onLogin={checkAuth} />
           }
         />
 
@@ -70,7 +70,7 @@ export default function App() {
           path="/"
           element={
             authenticated
-              ? <AppLayout onLogout={() => setAuthenticated(false)} username={username} />
+              ? <AppLayout onLogout={() => setAuthenticated(false)} username={username} authenticated={authenticated} />
               : <Navigate to="/login" />
           }
         />
